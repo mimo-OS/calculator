@@ -350,10 +350,12 @@ Tokens Evaluator::scan(const QString& expr, const QString& settingsDecimal)
     QChar decimalPoint;
     QChar wrongDecimalPoint;
 
-    if (settingsDecimal.length() == 1)
+    if (settingsDecimal.length() == 1) {
         decimalPoint = settingsDecimal[0];
-    else
-        decimalPoint = QLocale().decimalPoint();
+    } else {
+        QString dp = QLocale().decimalPoint();
+        decimalPoint = dp.isEmpty() ? QChar('.') : dp[0];
+    }
 
     // sanity check for wrong decimal separator usage
 

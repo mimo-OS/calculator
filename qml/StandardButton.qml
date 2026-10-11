@@ -9,36 +9,65 @@ Item {
     signal clicked(string text)
 
     property string text
-    property var icon
-    property alias textColor: _label.color
-    property bool flat: false
+    property string buttonType: "number" // "number", "operator", "function"
+    property bool isActiveOperator: false
+    property bool wideZero: false
 
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    property color backgroundColor: FishUI.Theme.backgroundColor
-    property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.7)
-                                                       : Qt.darker(FishUI.Theme.backgroundColor, 1.1)
-    property color pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.4)
-                                                       : Qt.darker(FishUI.Theme.backgroundColor, 1.3)
+    property color normalBg: {
+        if (buttonType === "operator") {
+            return isActiveOperator ? "#FFFFFF" : "#FF9F0A"
+        } else if (buttonType === "function") {
+            return FishUI.Theme.darkMode ? "#505050" : "#D4D4D2"
+        } else {
+            return FishUI.Theme.darkMode ? "#3B3B3B" : "#E5E5EA"
+        }
+    }
 
-    property color flatBg: FishUI.Theme.highlightColor
-    property color flatHoveredBg: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.highlightColor, 1.1)
-                                                        : Qt.darker(FishUI.Theme.highlightColor, 1.1)
-    property color flatPressedBg: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.highlightColor, 1.05)
-                                                        : Qt.darker(FishUI.Theme.highlightColor, 1.3)
+    property color hoverBg: {
+        if (buttonType === "operator") {
+            return isActiveOperator ? "#F0F0F0" : "#FFB340"
+        } else if (buttonType === "function") {
+            return FishUI.Theme.darkMode ? "#636366" : "#E5E5E5"
+        } else {
+            return FishUI.Theme.darkMode ? "#48484A" : "#D1D1D6"
+        }
+    }
+
+    property color pressBg: {
+        if (buttonType === "operator") {
+            return "#CC7F08"
+        } else if (buttonType === "function") {
+            return FishUI.Theme.darkMode ? "#3A3A3C" : "#BCBCC0"
+        } else {
+            return FishUI.Theme.darkMode ? "#2C2C2E" : "#C7C7CC"
+        }
+    }
+
+    property color labelColor: {
+        if (buttonType === "operator") {
+            return isActiveOperator ? "#FF9F0A" : "#FFFFFF"
+        } else if (buttonType === "function") {
+            return FishUI.Theme.darkMode ? "#FFFFFF" : "#000000"
+        } else {
+            return FishUI.Theme.darkMode ? "#FFFFFF" : "#000000"
+        }
+    }
 
     Rectangle {
         id: _background
         anchors.centerIn: parent
-        radius: FishUI.Theme.smallRadius
-        width: control.width - radius
-        height: control.height - radius
-        color: !flat ? _mouseArea.pressed ? pressedColor : _mouseArea.containsMouse
-                                            ? hoveredColor : backgroundColor
-                     : _mouseArea.pressed ? flatPressedBg : _mouseArea.containsMouse
-                                                           ? flatHoveredBg : flatBg
-        opacity: !flat ? _mouseArea.pressed || _mouseArea.containsMouse ? 0.6 : 0.7 : 1.0
+        width: control.width - 6
+        height: control.height - 6
+        radius: height / 2
+        color: _mouseArea.pressed ? control.pressBg : (_mouseArea.containsMouse ? control.hoverBg : control.normalBg)
+        antialiasing: true
+
+        Behavior on color {
+            ColorAnimation { duration: 100 }
+        }
     }
 
     MouseArea {
@@ -48,29 +77,16 @@ Item {
         onClicked: control.clicked(control.text)
     }
 
-    Image {
-        id: _icon
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        width: control.height * 0.45
-        height: width
-        sourceSize: Qt.size(width, height)
-        source: control.icon ? control.icon : ""
-        visible: _icon.status === Image.Ready
-        smooth: false
-        antialiasing: true
-    }
-
     Label {
         id: _label
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        Layout.minimumWidth: parent.width
+        anchors.centerIn: parent
+        anchors.horizontalCenterOffset: control.wideZero ? -parent.width * 0.22 : 0
         horizontalAlignment: Text.AlignHCenter
-        color: !flat ? FishUI.Theme.textColor : FishUI.Theme.highlightedTextColor
+        verticalAlignment: Text.AlignVCenter
+        color: control.labelColor
         text: control.text
-        visible: !_icon.visible
-        minimumPointSize: Math.round(control.height / 5)
-        font.pointSize: Math.round(control.height / 5)
+        font.family: "SF Pro Display"
+        font.pointSize: buttonType === "operator" ? Math.round(control.height * 0.36) : Math.round(control.height * 0.30)
+        font.bold: buttonType === "operator" || buttonType === "function"
     }
 }

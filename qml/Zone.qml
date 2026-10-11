@@ -1,102 +1,59 @@
-import QtQuick 2.9
-import QtQuick.Layouts 1.3
-import QtQuick.Controls 2.5
-
-
+import QtQuick 2.12
+import QtQuick.Layouts 1.12
+import QtQuick.Controls 2.12
 import FishUI 1.0 as FishUI
-import Cutefish.Calculator 1.0
 
 Item {
     id: zone
 
+    property string displayText: "0"
+    property string historyText: ""
+
     ColumnLayout {
-        id: layout
         anchors.fill: parent
-        anchors.margins: 0
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        anchors.topMargin: 8
+        anchors.bottomMargin: 8
+        spacing: 2
 
-        ListView {
-            id: listView
-            model: ListModel { id: historyModel }
-            clip: true
+        // History / Expression label
+        Label {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 20
+            horizontalAlignment: Text.AlignRight
+            verticalAlignment: Text.AlignBottom
+            text: zone.historyText
+            elide: Text.ElideLeft
+            font.family: "SF Pro Text"
+            font.pointSize: 10
+            color: FishUI.Theme.disabledTextColor
+        }
 
+        // Primary Display
+        Item {
+            Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.fillWidth: true
 
-            flickableDirection: Flickable.VerticalFlick
-            ScrollBar.vertical: ScrollBar {}
-
-            onCountChanged: {
-                listView.currentIndex = count - 1
-            }
-
-            delegate: Item {
-                height: label.implicitHeight + FishUI.Units.largeSpacing * 2
-                width: parent ? parent.width : undefined
-
-                Label {
-                    id: label
-                    anchors.fill: parent
-                    horizontalAlignment: Qt.AlignRight
-                    text: historyModel.count > 0 ? historyModel.get(index).text : ""
-                    elide: Text.ElideMiddle
-                    color: FishUI.Theme.disabledTextColor
-
-                    leftPadding: FishUI.Units.largeSpacing
-                    rightPadding: FishUI.Units.largeSpacing
-
-                    MouseArea {
-                        hoverEnabled: true
-                    }
+            Label {
+                id: mainDisplay
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                horizontalAlignment: Text.AlignRight
+                verticalAlignment: Text.AlignBottom
+                text: zone.displayText
+                font.family: "SF Pro Display"
+                font.weight: Font.Light
+                font.pointSize: {
+                    var len = zone.displayText.length
+                    if (len <= 6) return 40
+                    if (len <= 9) return 32
+                    if (len <= 12) return 26
+                    return 20
                 }
+                color: FishUI.Theme.textColor
+                elide: Text.ElideLeft
             }
-        }
-
-        TextField {
-            id: textField
-            Layout.preferredHeight: 50
-            Layout.fillWidth: true
-            Keys.onReturnPressed: appendToTextField('=')
-            Keys.onEnterPressed: appendToTextField('=')
-
-            selectByMouse: true
-            horizontalAlignment: TextInput.AlignRight
-            focus: Qt.StrongFocus
-            font.pixelSize: 24
-
-            background: Rectangle {
-                border.width: 0
-                color: "transparent"
-            }
-
-            leftPadding: FishUI.Units.largeSpacing
-            rightPadding: FishUI.Units.largeSpacing
-        }
-    }
-
-    function appendToTextField(text) {
-        if (text === '=') {
-            var res = calculate(textField.text)
-            if (res !== '') {
-                var expressionText = textField.text
-                textField.text = res
-
-                // If the expression and the result area equal,
-                // it will not be added to the ListView
-                if (expressionText !== res) {
-                    expressionText = expressionText + " = " + res
-                    historyModel.append({"text": expressionText})
-                }
-            }
-        } else if (text === 'C') {
-            if (textField.text != "")
-                textField.clear()
-            else 
-                historyModel.clear()
-        } else if (text === 'BACKSPACE') {
-            // backspace
-            textField.remove(textField.cursorPosition, textField.cursorPosition - 1)
-        } else {
-            textField.insert(textField.cursorPosition, text)
         }
     }
 }
