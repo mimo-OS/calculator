@@ -29,20 +29,20 @@ CalcEngine::CalcEngine(QObject *parent)
 QString CalcEngine::eval(const QString &expr)
 {
     QString text = expr;
-    text = text.replace("＋", "+");
-    text = text.replace("－", "-");
-    text = text.replace("×", "*");
-    text = text.replace("÷", "/");
+    text.replace(QChar(0xFF0B), QLatin1Char('+'));
+    text.replace(QChar(0xFF0D), QLatin1Char('-'));
+    text.replace(QChar(0x00D7), QLatin1Char('*'));
+    text.replace(QChar(0x00F7), QLatin1Char('/'));
 
     m_evaluator->setExpression(text);
-    m_evaluator->eval();
+    const HNumber result = m_evaluator->eval();
 
     if (m_evaluator->error().isEmpty()) {
-        return QString(HMath::formatFixed(m_evaluator->eval()));
+        return QString(HMath::formatFixed(result));
     } else {
         qDebug() << m_evaluator->error();
         emit failed(QObject::tr("Error: %1").arg(m_evaluator->error()));
     }
 
-    return "";
+    return QString();
 }
