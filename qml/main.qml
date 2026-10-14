@@ -17,6 +17,7 @@ FishUI.Window {
 
     background.color: FishUI.Theme.backgroundColor
     background.opacity: FishUI.Theme.blurEnabled ? 0.78 : 1.0
+    clipContent: false
 
     header.height: 30
 
