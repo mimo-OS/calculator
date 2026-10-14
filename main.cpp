@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
 #endif
 
     QGuiApplication app(argc, argv);
+    app.setApplicationName("mimo-calculator");
+    app.setApplicationDisplayName(QObject::tr("mimo OS Calculator"));
     app.setWindowIcon(QIcon::fromTheme("cutefish-calculator"));
 
     // Trim freed memory after startup and periodically
