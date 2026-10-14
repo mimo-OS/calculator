@@ -86,7 +86,7 @@ Item {
         color: control.labelColor
         text: control.text
         font.family: "SF Pro Display"
-        font.pointSize: buttonType === "operator" ? Math.round(control.height * 0.36) : Math.round(control.height * 0.30)
+        font.pointSize: Math.max(8, buttonType === "operator" ? Math.round(control.height * 0.36) : Math.round(control.height * 0.30))
         font.bold: buttonType === "operator" || buttonType === "function"
     }
 }

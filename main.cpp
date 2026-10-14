@@ -24,16 +24,50 @@
 #include <QLocale>
 #include <QIcon>
 #include <QFile>
+#include <QTimer>
+#ifdef __GLIBC__
+#include <malloc.h>
+#endif
 #include "calcengine.h"
 
 int main(int argc, char *argv[])
 {
+#ifdef __GLIBC__
+    mallopt(M_ARENA_MAX, 2);
+    mallopt(M_TRIM_THRESHOLD, 128 * 1024);
+    mallopt(M_MMAP_THRESHOLD, 64 * 1024);
+#endif
+
+    // Dynamic EGL vendor selection to prevent NVIDIA driver bloat on Intel/AMD GPUs
+    if (!QFile::exists(QStringLiteral("/dev/nvidia0")) &&
+        QFile::exists(QStringLiteral("/usr/share/glvnd/egl_vendor.d/50_mesa.json"))) {
+        qputenv("__EGL_VENDOR_LIBRARY_FILENAMES", "/usr/share/glvnd/egl_vendor.d/50_mesa.json");
+    }
+
+    qputenv("QSG_RENDER_LOOP", "basic");
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
 #endif
 
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon::fromTheme("cutefish-calculator"));
+
+    // Trim freed memory after startup and periodically
+    QTimer::singleShot(2000, []() {
+#ifdef __GLIBC__
+        malloc_trim(0);
+#endif
+    });
+
+    QTimer *trimTimer = new QTimer(&app);
+    trimTimer->setInterval(45000);
+    QObject::connect(trimTimer, &QTimer::timeout, []() {
+#ifdef __GLIBC__
+        malloc_trim(0);
+#endif
+    });
+    trimTimer->start();
 
     qmlRegisterType<CalcEngine>("Cutefish.Calculator", 1, 0, "CalcEngine");
 
